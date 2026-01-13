@@ -1,13 +1,10 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_application_1/widgets/app_scaffold.dart';
 import 'package:get/get.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_picker/image_picker.dart';
-
-XFile? imageFile;
-bool imageLabelingChecking = false;
-String imageLabels = "";
 
 class imagelabel extends StatefulWidget {
   const imagelabel({super.key});
@@ -17,131 +14,161 @@ class imagelabel extends StatefulWidget {
 }
 
 class _imagelabelState extends State<imagelabel> {
+  bool _labeling = false;
+  XFile? _imageFile;
+  String _labels = '';
+
   @override
   void dispose() {
-    // TODO: implement dispose
+    _imageFile = null;
+    _labels = '';
     super.dispose();
-    imageFile = null;
-    imageLabels = "";
   }
 
   @override
   Widget build(BuildContext context) {
-    var _mediaXY = MediaQuery.of(context);
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          actions: [
-            InkWell(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 20,left: 10),
-                child: Icon(Icons.image),
-              ),
-              onTap: () {
-                getImage();
-              },
-            ),
-          
-          ],
-          leading: InkWell(
-            child: const Icon(Icons.arrow_back),
-            onTap: () {
-         
-              Get.back();
-            },
-          ),
-          title: const Text("Image Label"),
+    final media = MediaQuery.of(context);
+    return AppScaffold(
+      title: 'Image Labeling',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.image_rounded),
+          onPressed: _pickImage,
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // if(!textScanning && imageFile == null)
-              // if(textScanning)
-              // CircularProgressIndicator(),
-
-              //if (imageFile != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                 
-                    
+      ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 12),
+                  ),
                 ],
               ),
-
-              //  if(imageFile != null)
-              //  Image.file(File(imageFile!.path)) ,
-
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  width: _mediaXY.size.width * 0.5,
-                  height: _mediaXY.size.height * 0.3,
-                   color: Colors.black12,
-                  child: imageFile != null
-                      ? Image.file(File(imageFile!.path))
-                      : Container(),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Identify objects in photos',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Pick an image to generate smart labels.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.black54,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: media.size.height * 0.25,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1FFF5),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: _imageFile != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.file(
+                              File(_imageFile!.path),
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.label_important_rounded,
+                              size: 48,
+                              color: Colors.black38,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_labeling)
+                    const LinearProgressIndicator(minHeight: 3),
+                ],
               ),
-              Expanded(
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: SelectableText(
-                      imageLabels,
-                      style: const TextStyle(
-                          overflow: TextOverflow.fade,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold
-                  
-                      ),
+                  child: Text(
+                    _labels.isEmpty
+                        ? 'Labels will appear here.'
+                        : _labels,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void getImage() async {
+  Future<void> _pickImage() async {
     try {
       final pickerImage =
           await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (pickerImage != null) {
-        imageLabelingChecking = true;
-        imageFile = pickerImage;
-        setState(() {});
-        getImageLabel(pickerImage);
+      if (pickerImage == null) {
+        return;
       }
+      setState(() {
+        _labeling = true;
+        _imageFile = pickerImage;
+        _labels = '';
+      });
+      await _getImageLabel(pickerImage);
     } catch (e) {
-      imageLabelingChecking = false;
-      imageFile = null;
-      setState(() {});
-      imageLabels = "Error occurred while getting image Label";
+      setState(() {
+        _labeling = false;
+        _imageFile = null;
+        _labels = 'Error occurred while labeling.';
+      });
+      Get.snackbar('Image Label', 'Failed to label image.');
     }
   }
 
-  void getImageLabel(XFile image) async {
+  Future<void> _getImageLabel(XFile image) async {
     final inputImage = InputImage.fromFilePath(image.path);
-    ImageLabeler imageLabeler = ImageLabeler(options: ImageLabelerOptions());
-    List<ImageLabel> label = await imageLabeler.processImage(inputImage);
-    StringBuffer sb = StringBuffer();
-    for (ImageLabel imageLabel in label) {
-      String labelText = imageLabel.label;
-      double confidence = imageLabel.confidence;
-      sb.write(labelText);
-      sb.write(" : ");
-      sb.write((confidence * 100).toStringAsFixed(2));
-      sb.write("%\n");
-    }
-    imageLabeler.close();
-    imageLabels = sb.toString();
-    imageLabelingChecking = false;
-    setState(() {});
-  }
+    final imageLabeler = ImageLabeler(options: ImageLabelerOptions());
+    final labels = await imageLabeler.processImage(inputImage);
+    await imageLabeler.close();
 
+    final buffer = StringBuffer();
+    for (final imageLabel in labels) {
+      buffer.write(imageLabel.label);
+      buffer.write(' : ');
+      buffer.write((imageLabel.confidence * 100).toStringAsFixed(2));
+      buffer.writeln('%');
+    }
+
+    setState(() {
+      _labels = buffer.toString().trim();
+      _labeling = false;
+    });
+  }
 }

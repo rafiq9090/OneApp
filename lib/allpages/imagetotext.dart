@@ -1,14 +1,11 @@
-// ignore_for_file: unused_local_variable
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_application_1/widgets/app_scaffold.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-
-bool textScanning = false;
-XFile? imageFile;
-String scanningText = "";
+import 'package:image_picker/image_picker.dart';
 
 class imagetotext extends StatefulWidget {
   const imagetotext({super.key});
@@ -18,134 +15,168 @@ class imagetotext extends StatefulWidget {
 }
 
 class _imagetotextState extends State<imagetotext> {
+  bool _textScanning = false;
+  XFile? _imageFile;
+  String _scanningText = '';
 
-@override
+  @override
   void dispose() {
-    // TODO: implement dispose
+    _imageFile = null;
+    _scanningText = '';
     super.dispose();
-    imageFile=null;
-    scanningText ="";
   }
 
   @override
   Widget build(BuildContext context) {
-    var _mediaXY = MediaQuery.of(context);
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          actions: [
-            InkWell(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 10,left: 10),
-                child: Icon(Icons.image),
-              ),
-              onTap: () {
-                getImage();
-              },
-            ),
-             InkWell(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 20,left: 10),
-                child: Icon(Icons.copy_all),
-              ),
-              onTap: () {
-              Clipboard.setData(
-                             ClipboardData(text: scanningText));
-              },
-            ),
-          ],
-          leading: InkWell(
-            child: const Icon(Icons.arrow_back),
-            onTap: () {
-              // Navigator.of(context).pop(MaterialPageRoute(
-              //   builder: (context) => const MainPage(),
-              // ));
-              Get.back();
-            },
-          ),
-          title: const Text("Image to Text Convert"),
+    final media = MediaQuery.of(context);
+    return AppScaffold(
+      title: 'Image to Text',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.image_rounded),
+          onPressed: _pickImage,
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if(!textScanning && imageFile == null)
-              if(textScanning)
-              const CircularProgressIndicator(),
-
-
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    width: _mediaXY.size.width * 0.5,
-                    height: _mediaXY.size.height * 0.3,
-                    color: Colors.black12,
-                    child: imageFile != null ? Image.file(File (imageFile!.path)) : Container(),
-                  )
+        IconButton(
+          icon: const Icon(Icons.copy_all_rounded),
+          onPressed: _scanningText.isEmpty ? null : _copyToClipboard,
+        ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Extract text from an image',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Tap the image button to choose a photo.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.black54,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: media.size.height * 0.25,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5FF),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: _imageFile != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.file(
+                              File(_imageFile!.path),
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.image_search_rounded,
+                              size: 48,
+                              color: Colors.black38,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_textScanning)
+                    const LinearProgressIndicator(minHeight: 3),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-
-               // if(imageFile != null)
-               // Image.file(File(imageFile!.path)) ,
-
-             
-              Expanded(
                 child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 20,left: 10,right: 10),
-                    child: SelectableText(
-                      scanningText,
-                      style: const TextStyle(
-                          overflow: TextOverflow.fade,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14
-                      ),
+                  child: SelectableText(
+                    _scanningText.isEmpty
+                        ? 'Recognized text will appear here.'
+                        : _scanningText,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void getImage() async {
+  Future<void> _pickImage() async {
     try {
       final pickerImage =
           await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (pickerImage != null) {
-        textScanning = true;
-        imageFile = pickerImage;
-        setState(() {});
-        getRecognisedText(pickerImage);
+      if (pickerImage == null) {
+        return;
       }
+      setState(() {
+        _textScanning = true;
+        _imageFile = pickerImage;
+        _scanningText = '';
+      });
+      await _getRecognisedText(pickerImage);
     } catch (e) {
-      textScanning = false;
-      imageFile = null;
-      setState(() {});
-      scanningText = "Error occured while scanning";
+      setState(() {
+        _textScanning = false;
+        _imageFile = null;
+        _scanningText = 'Error occurred while scanning.';
+      });
     }
   }
 
-  void getRecognisedText(XFile image) async {
+  Future<void> _getRecognisedText(XFile image) async {
     final inputImage = InputImage.fromFilePath(image.path);
     final textDetector = GoogleMlKit.vision.textRecognizer();
-
-    RecognizedText recognizedText = await textDetector.processImage(inputImage);
-
+    final recognizedText = await textDetector.processImage(inputImage);
     await textDetector.close();
-    scanningText = "";
 
-    for (TextBlock block in recognizedText.blocks) {
-      for (TextLine line in block.lines) {
-        scanningText = scanningText + line.text + "\n";
+    final buffer = StringBuffer();
+    for (final block in recognizedText.blocks) {
+      for (final line in block.lines) {
+        buffer.writeln(line.text);
       }
     }
-    textScanning = false;
-    setState(() {});
+
+    setState(() {
+      _textScanning = false;
+      _scanningText = buffer.toString().trim();
+    });
   }
 
-
+  void _copyToClipboard() {
+    Clipboard.setData(ClipboardData(text: _scanningText));
+    Get.snackbar('Copied', 'Text copied to clipboard.');
+  }
 }

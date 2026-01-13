@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
 class Appcolor{
-  static const LogColor = Color(0xff00033);
-  static const BoxColor1 = Color(0xffd2ffec);
-  static const BoxColor2 = Color(0xfffff0d1);
-  static const BoxColor3 = Color.fromARGB(96, 233, 176, 85);
-  static const BoxColor4 = Color(0xffe1d3fe);
-  static const BoxColor5 = Color(0xfffecdc9);
-  static const BoxColor6 = Color(0xffcce1cc);
+  static const LogColor = Color(0xFF0B1020);
+  static const BoxColor1 = Color(0xFFEFF6FF);
+  static const BoxColor2 = Color(0xFFFFF7ED);
+  static const BoxColor3 = Color(0xFFF1F5F9);
+  static const BoxColor4 = Color(0xFFF5F3FF);
+  static const BoxColor5 = Color(0xFFFFF1F2);
+  static const BoxColor6 = Color(0xFFF0FDF4);
 }
 
 class AppIconColor{
-  static const Icon1 = Color.fromARGB(255, 84, 226, 167);
-  static const Icon2 = Color.fromARGB(255, 224, 184, 104);
-  static const Icon3 = Color.fromARGB(255, 233, 176, 85);
-  static const Icon4 = Color.fromARGB(255, 162, 119, 247);
-  static const Icon5 = Color.fromARGB(255, 236, 131, 121);
-  static const Icon6 = Color.fromARGB(255, 97, 201, 97);
+  static const Icon1 = Color(0xFF1F6FEB);
+  static const Icon2 = Color(0xFFF59E0B);
+  static const Icon3 = Color(0xFF0EA5E9);
+  static const Icon4 = Color(0xFF7C3AED);
+  static const Icon5 = Color(0xFFF43F5E);
+  static const Icon6 = Color(0xFF16A34A);
 }

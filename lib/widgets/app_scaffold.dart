@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/App_Color/Appcolor.dart';
+import 'package:flutter_application_1/Controller/theme_controller.dart';
 import 'package:flutter_application_1/myDrawer.dart';
 import 'package:get/get.dart';
 
@@ -21,22 +21,50 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       drawer: const myDrawer(),
       appBar: AppBar(
-        title: Text(title),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        backgroundColor:
+            Theme.of(context).appBarTheme.backgroundColor ??
+                Theme.of(context).scaffoldBackgroundColor,
         leading: showBack
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: () => Get.back(),
               )
             : null,
+        title: Text(
+          title,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
         actions: [
           if (actions != null) ...actions!,
+          PopupMenuButton<ThemeMode>(
+            icon: const Icon(Icons.palette_outlined),
+            onSelected: (mode) =>
+                Get.find<ThemeController>().setMode(mode),
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: ThemeMode.system,
+                child: Text('System default'),
+              ),
+              PopupMenuItem(
+                value: ThemeMode.light,
+                child: Text('Light mode'),
+              ),
+              PopupMenuItem(
+                value: ThemeMode.dark,
+                child: Text('Dark mode'),
+              ),
+            ],
+          ),
           Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.menu_rounded),
@@ -46,21 +74,12 @@ class AppScaffold extends StatelessWidget {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFF8FAFF),
-              Color(0xFFFDF7F0),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: SafeArea(
           top: false,
           child: DefaultTextStyle(
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: Appcolor.LogColor,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
             child: child,
           ),

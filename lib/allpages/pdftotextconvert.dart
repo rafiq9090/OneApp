@@ -13,6 +13,12 @@ class PdfTOtextConvert extends StatelessWidget {
   const PdfTOtextConvert({super.key});
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final surface = colors.surface;
+    final surfaceVariant = colors.surfaceVariant;
+    final onSurface = colors.onSurface;
+    final onSurfaceMuted = onSurface.withOpacity(0.7);
     return AppScaffold(
       title: 'PDF to Text',
       actions: [
@@ -41,11 +47,11 @@ class PdfTOtextConvert extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: surface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: theme.shadowColor.withOpacity(0.12),
                     blurRadius: 20,
                     offset: const Offset(0, 12),
                   ),
@@ -54,18 +60,17 @@ class PdfTOtextConvert extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Extract text from PDF files',
-                    style: TextStyle(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      fontSize: 16,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Open a PDF, then tap the text icon to extract.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.black54,
+                          color: onSurfaceMuted,
                         ),
                   ),
                 ],
@@ -77,22 +82,78 @@ class PdfTOtextConvert extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: surface,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Obx(
-                  () => SingleChildScrollView(
-                    child: SelectableText(
-                      controller.pdfText.isEmpty
-                          ? 'Extracted text will appear here.'
-                          : controller.pdfText.value
-                              .replaceAll(RegExp(r'\s+'), ' '),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  () {
+                    final rawText = controller.pdfText.value;
+                    final hasText = rawText.trim().isNotEmpty;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: surfaceVariant,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.article_outlined,
+                                size: 18,
+                                color: Color(0xFF1D4ED8),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Extracted Text',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                            if (hasText)
+                              _StatChip(
+                                label: '${_wordCount(rawText)} words',
+                              ),
+                            if (hasText) const SizedBox(width: 8),
+                            if (hasText)
+                              _StatChip(
+                                label: '${rawText.length} chars',
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: SelectableText(
+                              hasText
+                                  ? rawText
+                                  : 'Extracted text will appear here.',
+                              textAlign: TextAlign.left,
+                              textWidthBasis: TextWidthBasis.longestLine,
+                              showCursor: false,
+                              autofocus: false,
+                              style: TextStyle(
+                                fontSize: 14,
+                                height: 1.6,
+                                fontFamily: hasText ? 'monospace' : null,
+                                fontWeight:
+                                    hasText ? FontWeight.w400 : FontWeight.w400,
+                                color: hasText ? onSurface : onSurfaceMuted,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -102,6 +163,11 @@ class PdfTOtextConvert extends StatelessWidget {
     );
   }
 
+  int _wordCount(String text) {
+    final words = text.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+    return words.length;
+  }
+
   void _copyToClipboard() {
     Clipboard.setData(ClipboardData(text: controller.pdfText.value));
     Get.snackbar(
@@ -109,6 +175,32 @@ class PdfTOtextConvert extends StatelessWidget {
       'Text copied to clipboard',
       snackPosition: SnackPosition.BOTTOM,
       margin: const EdgeInsets.all(10),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  const _StatChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.surfaceVariant,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.onSurface.withOpacity(0.7),
+            ),
+      ),
     );
   }
 }

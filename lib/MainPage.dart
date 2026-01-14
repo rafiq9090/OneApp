@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Color/Appcolor.dart';
 import 'package:flutter_application_1/allpages/imagelabel.dart';
 import 'package:flutter_application_1/allpages/imagetotext.dart';
+import 'package:flutter_application_1/allpages/pdftodoc.dart';
 import 'package:flutter_application_1/allpages/pdftotextconvert.dart';
 import 'package:flutter_application_1/allpages/qrcode.dart';
-import 'package:flutter_application_1/allpages/texttoimage.dart';
 import 'package:get/get.dart';
 
 import 'allpages/qrcodescanner.dart';
@@ -55,58 +55,46 @@ class MainPage extends StatelessWidget {
         onTap: () => Get.to(const imagetotext()),
       ),
       _HomeAction(
-        title: 'Text to Image',
-        subtitle: 'Export text as image',
-        icon: Icons.image_outlined,
+        title: 'PDF to DOC',
+        subtitle: 'Export PDF as DOC',
+        icon: Icons.description_outlined,
         cardColor: Appcolor.BoxColor3,
         iconColor: AppIconColor.Icon3,
-        onTap: () => Get.to(const texttoimage()),
+        onTap: () => Get.to(const PdfToDocConvert()),
       ),
     ];
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFFF8FAFF),
-            Color(0xFFFDF7F0),
+    return SafeArea(
+      top: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _Header(),
+            const SizedBox(height: 18),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 720;
+                final crossAxisCount = isWide ? 3 : 2;
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: actions.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: isWide ? 1.15 : 1.1,
+                  ),
+                  itemBuilder: (context, index) {
+                    final action = actions[index];
+                    return _ActionCard(action: action);
+                  },
+                );
+              },
+            ),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Header(),
-              const SizedBox(height: 18),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth >= 720;
-                  final crossAxisCount = isWide ? 3 : 2;
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: actions.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: isWide ? 1.15 : 1.1,
-                    ),
-                    itemBuilder: (context, index) {
-                      final action = actions[index];
-                      return _ActionCard(action: action);
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -132,20 +120,23 @@ class _HomeAction {
 }
 
 class _Header extends StatelessWidget {
+  const _Header();
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return LayoutBuilder(
       builder: (context, constraints) {
         final isNarrow = constraints.maxWidth < 360;
         return Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: isDark ? const Color(0xFF111827) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withOpacity(isDark ? 0.4 : 0.06),
                 blurRadius: 24,
                 offset: const Offset(0, 12),
               ),
@@ -159,14 +150,14 @@ class _Header extends StatelessWidget {
                       'One App',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: Appcolor.LogColor,
+                        color: isDark ? Colors.white : Appcolor.LogColor,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Smart tools to scan, extract, and create with ease.',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.black54,
+                        color: isDark ? Colors.white70 : Colors.black54,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -227,6 +218,10 @@ class _ActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor =
+        isDark ? const Color(0xFF0F172A) : action.cardColor;
+    final iconBg = isDark ? const Color(0xFF1F2937) : Colors.white;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -234,12 +229,14 @@ class _ActionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         child: Ink(
           decoration: BoxDecoration(
-            color: action.cardColor,
+            color: cardColor,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withOpacity(0.8)),
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.white.withOpacity(0.8),
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withOpacity(isDark ? 0.45 : 0.08),
                 blurRadius: 16,
                 offset: const Offset(0, 10),
               ),
@@ -254,7 +251,7 @@ class _ActionCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: iconBg,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(action.icon, color: action.iconColor, size: 26),
@@ -272,7 +269,7 @@ class _ActionCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: Appcolor.LogColor,
+                          color: isDark ? Colors.white : Appcolor.LogColor,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -281,7 +278,7 @@ class _ActionCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.black54,
+                          color: isDark ? Colors.white70 : Colors.black54,
                         ),
                       ),
                     ],

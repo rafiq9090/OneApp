@@ -6,7 +6,7 @@ import 'package:flutter_application_1/allpages/imagetotext.dart';
 import 'package:flutter_application_1/allpages/pdftotextconvert.dart';
 import 'package:flutter_application_1/allpages/qrcode.dart';
 import 'package:flutter_application_1/allpages/qrcodescanner.dart';
-import 'package:flutter_application_1/allpages/texttoimage.dart';
+import 'package:flutter_application_1/allpages/pdftodoc.dart';
 import 'package:get/get.dart';
 
 class myDrawer extends StatelessWidget {
@@ -67,9 +67,9 @@ class myDrawer extends StatelessWidget {
               onTap: () => _goTo(context, const qrcodescanner()),
             ),
             _DrawerItem(
-              icon: Icons.text_snippet_rounded,
-              label: 'Text to Image',
-              onTap: () => _goTo(context, const texttoimage()),
+              icon: Icons.description_outlined,
+              label: 'PDF to DOC',
+              onTap: () => _goTo(context, const PdfToDocConvert()),
             ),
             _DrawerItem(
               icon: Icons.image_rounded,

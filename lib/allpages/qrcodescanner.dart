@@ -36,6 +36,11 @@ class _qrcodescannerState extends State<qrcodescanner> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final surface = colors.surface;
+    final onSurface = colors.onSurface;
+    final onSurfaceMuted = onSurface.withOpacity(0.7);
     final hasResult = result?.code?.isNotEmpty == true;
     final isLink = _isLink(result?.code);
     return AppScaffold(
@@ -53,30 +58,31 @@ class _qrcodescannerState extends State<qrcodescanner> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: surface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: theme.shadowColor.withOpacity(0.12),
                     blurRadius: 20,
                     offset: const Offset(0, 12),
                   ),
                 ],
               ),
               child: Column(
-                children: const [
+                children: [
                   Text(
                     "Point your camera at the QR code.",
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(
                     "Scanning starts automatically.",
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: onSurfaceMuted,
+                    ),
                   ),
                 ],
               ),
@@ -96,7 +102,7 @@ class _qrcodescannerState extends State<qrcodescanner> {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: surface,
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Column(
@@ -111,17 +117,19 @@ class _qrcodescannerState extends State<qrcodescanner> {
                         decoration: BoxDecoration(
                           color: hasResult
                               ? const Color(0xFF16A34A)
-                              : Colors.black26,
+                              : colors.outlineVariant,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        hasResult ? 'Scan complete' : 'Waiting for scan',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black54,
+                      Flexible(
+                        child: Text(
+                          hasResult ? 'Scan complete' : 'Waiting for scan',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: onSurfaceMuted,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -135,8 +143,8 @@ class _qrcodescannerState extends State<qrcodescanner> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: isLink
-                            ? const Color(0xFF2563EB)
-                            : Colors.black87,
+                            ? colors.primary
+                            : onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         decoration:
@@ -145,17 +153,20 @@ class _qrcodescannerState extends State<qrcodescanner> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Row(
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
-                      Expanded(
+                      SizedBox(
+                        width: 140,
                         child: OutlinedButton.icon(
                           onPressed: hasResult ? _copyToClipboard : null,
                           icon: const Icon(Icons.copy_all_rounded),
                           label: const Text('Copy'),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
+                      SizedBox(
+                        width: 140,
                         child: OutlinedButton.icon(
                           onPressed: isLink ? _openLink : null,
                           icon: const Icon(Icons.open_in_new_rounded),

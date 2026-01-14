@@ -28,6 +28,12 @@ class _imagetotextState extends State<imagetotext> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final surface = colors.surface;
+    final surfaceVariant = colors.surfaceVariant;
+    final onSurface = colors.onSurface;
+    final onSurfaceMuted = onSurface.withOpacity(0.7);
     final media = MediaQuery.of(context);
     return AppScaffold(
       title: 'Image to Text',
@@ -49,11 +55,11 @@ class _imagetotextState extends State<imagetotext> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: surface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: theme.shadowColor.withOpacity(0.12),
                     blurRadius: 20,
                     offset: const Offset(0, 12),
                   ),
@@ -62,18 +68,17 @@ class _imagetotextState extends State<imagetotext> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Extract text from an image',
-                    style: TextStyle(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      fontSize: 16,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Tap the image button to choose a photo.',
+                    'Auto-detects multiple scripts for best result.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.black54,
+                          color: onSurfaceMuted,
                         ),
                   ),
                   const SizedBox(height: 16),
@@ -81,7 +86,7 @@ class _imagetotextState extends State<imagetotext> {
                     height: media.size.height * 0.25,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5FF),
+                      color: surfaceVariant,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: _imageFile != null
@@ -92,11 +97,11 @@ class _imagetotextState extends State<imagetotext> {
                               fit: BoxFit.cover,
                             ),
                           )
-                        : const Center(
+                        : Center(
                             child: Icon(
                               Icons.image_search_rounded,
                               size: 48,
-                              color: Colors.black38,
+                              color: onSurfaceMuted,
                             ),
                           ),
                   ),
@@ -112,19 +117,66 @@ class _imagetotextState extends State<imagetotext> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: surface,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: SingleChildScrollView(
-                  child: SelectableText(
-                    _scanningText.isEmpty
-                        ? 'Recognized text will appear here.'
-                        : _scanningText,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: surfaceVariant,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.description_outlined,
+                            size: 18,
+                            color: Color(0xFF1D4ED8),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Recognized Text',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        if (_scanningText.isNotEmpty)
+                          _StatChip(label: '${_wordCount(_scanningText)} words'),
+                        if (_scanningText.isNotEmpty) const SizedBox(width: 8),
+                        if (_scanningText.isNotEmpty)
+                          _StatChip(label: '${_scanningText.length} chars'),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          _scanningText.isEmpty
+                              ? 'Recognized text will appear here.'
+                              : _formatOcrText(_scanningText),
+                          style: TextStyle(
+                            fontSize: 14,
+                            height: 1.5,
+                            fontWeight: _scanningText.isEmpty
+                                ? FontWeight.w400
+                                : FontWeight.w500,
+                            color: _scanningText.isEmpty
+                                ? onSurfaceMuted
+                                : onSurface,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -158,25 +210,84 @@ class _imagetotextState extends State<imagetotext> {
 
   Future<void> _getRecognisedText(XFile image) async {
     final inputImage = InputImage.fromFilePath(image.path);
-    final textDetector = GoogleMlKit.vision.textRecognizer();
-    final recognizedText = await textDetector.processImage(inputImage);
-    await textDetector.close();
+    final scripts = [
+      TextRecognitionScript.latin,
+      TextRecognitionScript.chinese,
+      TextRecognitionScript.devanagiri,
+      TextRecognitionScript.japanese,
+      TextRecognitionScript.korean,
+    ];
 
-    final buffer = StringBuffer();
-    for (final block in recognizedText.blocks) {
-      for (final line in block.lines) {
-        buffer.writeln(line.text);
+    String bestText = '';
+    int bestScore = 0;
+
+    for (final script in scripts) {
+      final recognizer = GoogleMlKit.vision.textRecognizer(script: script);
+      final recognizedText = await recognizer.processImage(inputImage);
+      await recognizer.close();
+
+      final buffer = StringBuffer();
+      for (final block in recognizedText.blocks) {
+        for (final line in block.lines) {
+          buffer.writeln(line.text);
+        }
+      }
+
+      final text = buffer.toString().trim();
+      final score = text.replaceAll(RegExp(r'\s+'), '').length;
+      if (score > bestScore) {
+        bestScore = score;
+        bestText = text;
       }
     }
 
     setState(() {
       _textScanning = false;
-      _scanningText = buffer.toString().trim();
+      _scanningText = bestText;
     });
   }
 
   void _copyToClipboard() {
     Clipboard.setData(ClipboardData(text: _scanningText));
     Get.snackbar('Copied', 'Text copied to clipboard.');
+  }
+
+  String _formatOcrText(String text) {
+    final normalized = text.replaceAll('\r\n', '\n').replaceAll('\t', ' ');
+    final collapsedSpaces = normalized.replaceAll(RegExp(r'[ ]{2,}'), ' ');
+    return collapsedSpaces.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+  }
+
+  int _wordCount(String text) {
+    return text
+        .split(RegExp(r'\s+'))
+        .where((word) => word.trim().isNotEmpty)
+        .length;
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  const _StatChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.surfaceVariant,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.onSurface.withOpacity(0.7),
+            ),
+      ),
+    );
   }
 }

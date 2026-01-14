@@ -1,16 +1,41 @@
-# flutter_application_1
+# One App
 
-A new Flutter project.
+A Flutter utility app that bundles QR, OCR, image analysis, and PDF tools in one place.
 
-## Getting Started
+## Features
+- QR code generator with templates and custom branding (logo + colors)
+- QR code scanner with link detection, copy/open actions
+- Image to text (multi‑script OCR)
+- Image labeling + forensic insights (EXIF, hash, objects, faces, colors, histogram)
+- PDF to text extraction
+- PDF to DOC (local extraction + CloudConvert for layout‑preserving DOCX)
+- Light/Dark/System theme support
 
-This project is a starting point for a Flutter application.
+## Requirements
+- Flutter SDK (stable)
+- Android SDK
 
-A few resources to get you started if this is your first Flutter project:
+## Run
+```bash
+flutter pub get
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## CloudConvert (PDF → DOCX with layout)
+Set the API key at build time:
+```bash
+flutter run --dart-define=CLOUDCONVERT_API_KEY=YOUR_KEY_HERE
+```
+Without the key, the app falls back to local text extraction and saves a DOC file.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Saving files
+- QR codes save to the gallery.
+- PDF → DOC saves to the Downloads folder (Android).
+
+## Notes
+- The app uses ML Kit on‑device models for OCR and vision features.
+- Some features require runtime permissions (camera, photos/storage).
+
+## Project structure
+- `lib/` main Flutter code
+- `android/` native Android integration (Downloads save channel)

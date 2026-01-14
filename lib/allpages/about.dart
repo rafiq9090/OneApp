@@ -6,6 +6,9 @@ class about extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final onSurfaceMuted = colors.onSurface.withOpacity(0.7);
     return AppScaffold(
       title: 'About One App',
       child: ListView(
@@ -14,11 +17,11 @@ class about extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: theme.shadowColor.withOpacity(0.12),
                   blurRadius: 20,
                   offset: const Offset(0, 12),
                 ),
@@ -26,20 +29,18 @@ class about extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   'One App',
-                  style: TextStyle(
-                    fontSize: 20,
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
                   'A compact toolkit for QR, OCR, and PDF utilities. Built to be fast, clean, and easy to use.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: onSurfaceMuted,
                   ),
                 ),
               ],
@@ -49,29 +50,28 @@ class about extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   'Features',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 10),
-                Text('• QR code generator and scanner'),
-                SizedBox(height: 6),
-                Text('• Image to text (OCR)'),
-                SizedBox(height: 6),
-                Text('• Image labeling'),
-                SizedBox(height: 6),
-                Text('• PDF to text conversion'),
-                SizedBox(height: 6),
-                Text('• Text to image export'),
+                const SizedBox(height: 10),
+                const Text('• QR code generator and scanner'),
+                const SizedBox(height: 6),
+                const Text('• Image to text (OCR)'),
+                const SizedBox(height: 6),
+                const Text('• Image labeling'),
+                const SizedBox(height: 6),
+                const Text('• PDF to text conversion'),
+                const SizedBox(height: 6),
+                const Text('• Text to image export'),
               ],
             ),
           ),

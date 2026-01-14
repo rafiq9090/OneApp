@@ -125,6 +125,12 @@ class _qrcodeState extends State<qrcode> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final surface = colors.surface;
+    final surfaceVariant = colors.surfaceVariant;
+    final onSurface = colors.onSurface;
+    final onSurfaceMuted = onSurface.withOpacity(0.7);
     final decoration = _activeDecoration();
     final previewDecoration = _activePreviewDecoration();
     return AppScaffold(
@@ -140,19 +146,19 @@ class _qrcodeState extends State<qrcode> {
         children: [
           Text(
             'Create and save QR codes in seconds.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.black54,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                  color: onSurfaceMuted,
                 ),
           ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: surface,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: theme.shadowColor.withOpacity(0.12),
                   blurRadius: 20,
                   offset: const Offset(0, 12),
                 ),
@@ -184,7 +190,7 @@ class _qrcodeState extends State<qrcode> {
                     labelText: 'QR content',
                     hintText: 'Paste a link or type text',
                     filled: true,
-                    fillColor: const Color(0xFFF8FAFF),
+                    fillColor: surfaceVariant,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -233,8 +239,8 @@ class _qrcodeState extends State<qrcode> {
                           decoration: templateBackground.copyWith(
                             border: Border.all(
                               color: isSelected
-                                  ? const Color(0xFF1F6FEB)
-                                  : Colors.black12,
+                                  ? colors.primary
+                                  : colors.outlineVariant,
                               width: isSelected ? 2 : 1,
                             ),
                           ),
@@ -356,7 +362,7 @@ class _qrcodeState extends State<qrcode> {
                       child: Text(
                         'Logo added',
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: Colors.black54,
+                              color: onSurfaceMuted,
                             ),
                       ),
                     ),
@@ -555,6 +561,7 @@ class _ColorButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -562,9 +569,9 @@ class _ColorButton extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFF),
+            color: colors.surfaceVariant,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.black12),
+            border: Border.all(color: colors.outlineVariant),
           ),
           child: Row(
             children: [
@@ -574,7 +581,7 @@ class _ColorButton extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: color,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.black12),
+                  border: Border.all(color: colors.outlineVariant),
                 ),
               ),
               const SizedBox(width: 8),
@@ -614,6 +621,7 @@ class _ColorPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
       child: Wrap(
@@ -631,8 +639,8 @@ class _ColorPickerSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: color == initial
-                          ? const Color(0xFF1F6FEB)
-                          : Colors.black12,
+                          ? colors.primary
+                          : colors.outlineVariant,
                       width: color == initial ? 2 : 1,
                     ),
                   ),
